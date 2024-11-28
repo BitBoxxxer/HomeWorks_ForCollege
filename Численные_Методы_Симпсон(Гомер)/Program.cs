@@ -145,7 +145,7 @@ namespace ЧисленныеМетодыСимпсонГомер
         // ------------ 2 I(fxi)
         public double OutputH_I2() // h вывод
         {
-            return _NLimpromeshytok;
+            return _NLimpromeshytok2;
         }
         public void OutputXS_I2()
         {
@@ -173,7 +173,7 @@ namespace ЧисленныеМетодыСимпсонГомер
                 else
                     _ne_chetni2 += IEquationList2[i];
             }
-            FxDx2 = ((_NLimpromeshytok / 3) * ((MinLimit + MaxLimit) + 4 * _ne_chetni2 + 2 * _chetni2));
+            FxDx2 = ((_NLimpromeshytok2 / 3) * ((MinLimit + MaxLimit) + 4 * _ne_chetni2 + 2 * _chetni2));
         }
     }
 }
