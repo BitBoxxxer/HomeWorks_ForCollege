@@ -16,19 +16,16 @@ namespace ЧисленныеМетодыСимпсонГомер
 
             WriteLine("Для ПЕРВОЙ I n-ой");
             WriteLine($"\nh = {simpson.Output_H()} [это b-a / n]");
-
             WriteLine($"\nВсе значения xi: [Всего x-ов i: {simpson.IPrototypeList.Count + 1}]");
-            foreach (var value in simpson.IPrototypeList)
-            {
-                WriteLine(value);
-            }
-            WriteLine($"X2n = {simpson.MaxLimit}");
 
-            WriteLine("\nВсе значения f(xi) для :");
-            foreach (var value in simpson.IEquationList)
-            {
+            foreach (var value in simpson.IPrototypeList)
                 WriteLine(value);
-            }
+
+            WriteLine($"X2n = {simpson.MaxLimit}");
+            WriteLine("\nВсе значения f(xi) для :");
+
+            foreach (var value in simpson.IEquationList)
+                WriteLine(value);
 
             // I2 (Fxi)
             WriteLine("\n\nДля ВТОРОЙ I n-ой");
@@ -37,19 +34,16 @@ namespace ЧисленныеМетодыСимпсонГомер
             simpson.FXDX_I2();
 
             WriteLine($"\nh = {simpson.OutputH_I2()} [это b-a / n]");
-
             WriteLine($"\nВсе значения xi 2-ой I: [Всего x-ов i: {simpson.IPrototypeList2.Count + 1}]");
-            foreach (var value in simpson.IPrototypeList2)
-            {
-                WriteLine(value);
-            }
-            WriteLine($"X2n = {simpson.MaxLimit}");
 
-            WriteLine("\nВсе значения f(xi) для 2-ой I:");
-            foreach (var value in simpson.IEquationList2)
-            {
+            foreach (var value in simpson.IPrototypeList2)
                 WriteLine(value);
-            }
+
+            WriteLine($"X2n = {simpson.MaxLimit}");
+            WriteLine("\nВсе значения f(xi) для 2-ой I:");
+
+            foreach (var value in simpson.IEquationList2)
+                WriteLine(value);
 
             // ответ
             WriteLine($"\n f(x)dx, при {simpson.N}, для {simpson.E}: {simpson.FxDx}");
@@ -58,13 +52,9 @@ namespace ЧисленныеМетодыСимпсонГомер
             double result = Math.Abs(simpson.FxDx - simpson.FxDx2)/15;
 
             if (result > simpson.E)
-            {
                 WriteLine($"Все еще нужно искать. Точность = {result}");
-            }
             else
-            {
-                WriteLine($"Найдена подходящая !! Точность = {result}");
-            }
+                WriteLine($"Найдена подходящая для {simpson.E}!! Точность = {result}");
 
             // может быть я делаю не тот вывод ?
             WriteLine($"Вывод I1 1/3 = {(simpson.FxDx)/3}");
@@ -80,27 +70,27 @@ namespace ЧисленныеМетодыСимпсонГомер
         public double N;
         public double FxDx;
 
-        private double NLimpromeshytok; // (b-a) / n
+        private double _NLimpromeshytok; // (b-a) / n
 
         public List<double> IPrototypeList; // Список xi
         public List<double> IEquationList; // Список f(xi)
         public List<double> IFXDX;
 
-        private List<double> CHETNI;
-        private List<double> Ne_CHETNI;
+        private List<double> _CHETNI;
+        private List<double> _Ne_CHETNI;
 
         // 2 
         public double FxDx2;
         public double N2;
 
-        private double NLimpromeshytok2;
+        private double _NLimpromeshytok2;
 
         public List<double> IPrototypeList2;
         public List<double> IEquationList2;
         public List<double> IFXDX2;
 
-        private List<double> CHETNI2;
-        private List<double> Ne_CHETNI2;
+        private List<double> _CHETNI2;
+        private List<double> _Ne_CHETNI2;
 
 
         public Simpson()
@@ -113,38 +103,36 @@ namespace ЧисленныеМетодыСимпсонГомер
             WriteLine("Введите n1: ");
             this.N = Convert.ToDouble(Console.ReadLine());
 
-            this.NLimpromeshytok = (MaxLimit - MinLimit) / N; // h нахождение
+            this._NLimpromeshytok = (MaxLimit - MinLimit) / N; // h нахождение
             IPrototypeList = new List<double>(); // Инициализация списков
             IEquationList = new List<double>();
             IFXDX = new List<double>();
 
-            CHETNI = new List<double>();
-            Ne_CHETNI = new List<double>();
+            _CHETNI = new List<double>();
+            _Ne_CHETNI = new List<double>();
 
             // ------------ 2 I(Fxi)
             WriteLine("Введите n2: ");
             this.N2 = Convert.ToDouble(Console.ReadLine());
-            this.NLimpromeshytok2 = (MaxLimit - MinLimit) / N2; // h нахождение
+            this._NLimpromeshytok2 = (MaxLimit - MinLimit) / N2; // h нахождение
 
             IPrototypeList2 = new List<double>();
             IEquationList2 = new List<double>();
             IFXDX2 = new List<double>();
 
-            CHETNI2 = new List<double>();
-            Ne_CHETNI2 = new List<double>();
+            _CHETNI2 = new List<double>();
+            _Ne_CHETNI2 = new List<double>();
         }
 
         // ------------ 1 I(Fxi)
         public double Output_H() // h вывод
         {
-            return NLimpromeshytok;
+            return _NLimpromeshytok;
         }
         public void Output_XS()
         {
-            for (double i = 0; i < MaxLimit; i += NLimpromeshytok)
-            {
+            for (double i = 0; i < MaxLimit; i += _NLimpromeshytok)
                 IPrototypeList.Add(i); // Сохранение xi в список
-            }
         }
         public void ListFor_Fxi()
         {
@@ -163,28 +151,22 @@ namespace ЧисленныеМетодыСимпсонГомер
             for (int i = 0; i < IEquationList.Count; i++)
             {
                 if (i % 2 == 0)
-                {
                     _chetni += IEquationList[i];
-                }
                 else
-                {
                     _ne_chetni += IEquationList[i];
-                }
             }
-            FxDx = ((NLimpromeshytok / 3)*((MinLimit + MaxLimit) + 4*_ne_chetni + 2*_chetni));
+            FxDx = ((_NLimpromeshytok / 3)*((MinLimit + MaxLimit) + 4*_ne_chetni + 2*_chetni));
         }
 
         // ------------ 2 I(fxi)
         public double OutputH_I2() // h вывод
         {
-            return NLimpromeshytok;
+            return _NLimpromeshytok;
         }
         public void OutputXS_I2()
         {
-            for (double i = 0; i < MaxLimit; i += NLimpromeshytok2)
-            {
+            for (double i = 0; i < MaxLimit; i += _NLimpromeshytok2)
                 IPrototypeList2.Add(i); // Сохранение xi в список
-            }
         }
         public void ListFor_Fxi_I2()
         {
@@ -203,15 +185,11 @@ namespace ЧисленныеМетодыСимпсонГомер
             for (int i = 0; i < IEquationList2.Count; i++)
             {
                 if (i % 2 == 0)
-                {
                     _chetni2 += IEquationList2[i];
-                }
                 else
-                {
                     _ne_chetni2 += IEquationList2[i];
-                }
             }
-            FxDx2 = ((NLimpromeshytok / 3) * ((MinLimit + MaxLimit) + 4 * _ne_chetni2 + 2 * _chetni2));
+            FxDx2 = ((_NLimpromeshytok / 3) * ((MinLimit + MaxLimit) + 4 * _ne_chetni2 + 2 * _chetni2));
         }
     }
 }
