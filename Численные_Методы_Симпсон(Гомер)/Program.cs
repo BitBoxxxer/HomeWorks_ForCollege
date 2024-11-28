@@ -55,9 +55,6 @@ namespace ЧисленныеМетодыСимпсонГомер
                 WriteLine($"Все еще нужно искать. Точность = {result}");
             else
                 WriteLine($"Найдена подходящая для {simpson.E}!! Точность = {result}");
-
-            // может быть я делаю не тот вывод ?
-            WriteLine($"Вывод I1 1/3 = {(simpson.FxDx)/3}");
         }
     }
 
@@ -76,9 +73,6 @@ namespace ЧисленныеМетодыСимпсонГомер
         public List<double> IEquationList; // Список f(xi)
         public List<double> IFXDX;
 
-        private List<double> _CHETNI;
-        private List<double> _Ne_CHETNI;
-
         // 2 
         public double FxDx2;
         public double N2;
@@ -88,10 +82,6 @@ namespace ЧисленныеМетодыСимпсонГомер
         public List<double> IPrototypeList2;
         public List<double> IEquationList2;
         public List<double> IFXDX2;
-
-        private List<double> _CHETNI2;
-        private List<double> _Ne_CHETNI2;
-
 
         public Simpson()
         {
@@ -108,9 +98,6 @@ namespace ЧисленныеМетодыСимпсонГомер
             IEquationList = new List<double>();
             IFXDX = new List<double>();
 
-            _CHETNI = new List<double>();
-            _Ne_CHETNI = new List<double>();
-
             // ------------ 2 I(Fxi)
             WriteLine("Введите n2: ");
             this.N2 = Convert.ToDouble(Console.ReadLine());
@@ -119,9 +106,6 @@ namespace ЧисленныеМетодыСимпсонГомер
             IPrototypeList2 = new List<double>();
             IEquationList2 = new List<double>();
             IFXDX2 = new List<double>();
-
-            _CHETNI2 = new List<double>();
-            _Ne_CHETNI2 = new List<double>();
         }
 
         // ------------ 1 I(Fxi)
