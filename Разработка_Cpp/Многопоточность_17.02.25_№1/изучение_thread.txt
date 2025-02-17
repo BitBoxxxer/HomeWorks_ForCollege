@@ -1,0 +1,46 @@
+#include <iostream>
+#include <thread>
+using namespace std;
+
+int main()
+{
+	cout << thread::hardware_concurrency();
+}
+
+
+// посмотреть кол-во логических потоков на пк. (не физические)
+
+// создание потоков:
+
+join - присоединить поток.
+detach - отсоединить поток.
+
+основной поток управляет всей работой.
+
+void f(int i)
+{
+	cout << "Hello " << i << endl;
+}
+
+1)
+//cout << thread::hardware_concurrency();
+thread t(f, 1);
+t.detach();
+this_thread::sleep_for(chrono::milliseconds(100));
+// основной поток засыпает и дает оп. кол-во милисек. для 
+// выполения других потоков.
+cout << "finish";
+
+2) Пример с векторами.
+vector<thread> thr;
+int n = thread::hardware_concurrency();
+for (int i = 0; i <= n; i++)
+{
+	thr.emplace_back(f, i);
+	this_thread::sleep_for(chrono::milliseconds(10));
+}
+for (auto& i : thr)
+	i.join();
+
+
+a.ref(); - референс для ссылки
