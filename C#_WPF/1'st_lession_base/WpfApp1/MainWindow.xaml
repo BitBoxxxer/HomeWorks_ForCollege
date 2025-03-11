@@ -1,0 +1,18 @@
+﻿<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button x:Name="ButtonBIG" Content="Резюме Гуля шахтариста." Click="ButtonBIG_Click" HorizontalAlignment="Center" Margin="0,170,0,0" VerticalAlignment="Top" Height="160" Width="472" Background="#FFFFD2D2"/>
+        <TextBox x:Name="TBOXs1" HorizontalAlignment="Left" Margin="164,363,0,0" TextWrapping="Wrap" Text="Мое имя Гуль" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="TBOXs2" HorizontalAlignment="Left" Margin="516,363,0,0" TextWrapping="Wrap" Text="Работаю для души в шахте" VerticalAlignment="Top" Width="120" Background="White"/>
+        <TextBox x:Name="TBOXs3" HorizontalAlignment="Center" Margin="0,363,0,0" TextWrapping="Wrap" Text="Я работаю трактористом" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="TBOXBIG" HorizontalAlignment="Center" Margin="0,105,0,0" TextWrapping="Wrap" Text="ЧИСЛО" VerticalAlignment="Top" Width="250" Height="42" TextAlignment="Center"/>
+        <Button x:Name="ButtonBot" Click="ButtonBot_Click" Content="КНОПКА ДЛЯ ЧИСЛА" HorizontalAlignment="Center" Margin="0,54,0,0" VerticalAlignment="Top" Height="33" Width="250" Background="#FFE38585"/>
+
+    </Grid>
+</Window>
