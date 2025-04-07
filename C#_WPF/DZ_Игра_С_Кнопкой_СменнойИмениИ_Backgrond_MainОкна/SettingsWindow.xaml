@@ -1,0 +1,21 @@
+﻿<Window x:Class="ButtonCatcher.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Настройки" Height="300" Width="400">
+    <StackPanel Margin="10">
+        <TextBlock Text="Введите ваше имя:" />
+        <TextBox x:Name="txtPlayerName" Margin="0,0,0,10"/>
+
+        <TextBlock Text="Выберите цвет фона:" />
+        <ComboBox x:Name="colorComboBox" Margin="0,0,0,10">
+            <ComboBoxItem Content="Светло-серый" Tag="LightGray"/>
+            <ComboBoxItem Content="Белый" Tag="White"/>
+            <ComboBoxItem Content="Синий" Tag="LightBlue"/>
+            <ComboBoxItem Content="Красный" Tag="Red"/>
+            <ComboBoxItem Content="Зеленый" Tag="Green"/>
+            <ComboBoxItem Content="Темно-синий" Tag="Blue"/>
+        </ComboBox>
+
+        <Button Content="Сохранить" Click="btnSave_Click" Margin="0,10,0,0"/>
+    </StackPanel>
+</Window>

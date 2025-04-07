@@ -1,0 +1,19 @@
+﻿<Window x:Class="_26._03._25WPF.Settings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_26._03._25WPF"
+        mc:Ignorable="d"
+        Title="Настройки" Height="450" Width="800">
+    <Grid Background="#FF282828">
+        <Button x:Name="MainButt" Content="Главное окно." Margin="628,348,10,10" Click="MainButt_Click" Background="#FF585858"/>
+        <Label Content="Размер Шрифта:" Background="#FF585858" Margin="10,10,678,377"/>
+        <ComboBox x:Name="CBNumbersText" Width="120" Margin="158,10,522,377" SelectionChanged="CBNumbersText_SelectionChanged"/>
+        <Label Content="Тема оформления:" Background="#FF585858" Margin="10,95,663,292"/>
+        <ComboBox x:Name="CBTheme" Width="120" Margin="175,95,505,292" SelectionChanged="CBTheme_SelectionChanged"/>
+        <Button Content="Принять" Margin="400,34,247,353" Click="Button_Click"/>
+        <Button Content="Отмена" Margin="604,34,43,353" Click="Button_Click_1"/>
+
+    </Grid>
+</Window>
