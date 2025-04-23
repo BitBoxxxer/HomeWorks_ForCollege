@@ -1,0 +1,29 @@
+﻿<Window x:Class="StoryGenerator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Генератор" Height="400" Width="600">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="139*"/>
+            <ColumnDefinition Width="461*"/>
+        </Grid.ColumnDefinitions>
+
+        <ComboBox x:Name="genreComboBox" Margin="83,226,192,94" Text="Жанр" Grid.Column="1" />
+        <ListBox x:Name="charactersListBox" Width="200" Height="100" Margin="83,80,178,204" Grid.Column="1" />
+
+        <TextBlock x:Name="placeholderTextBlock" Text="Имя героя" 
+                   Foreground="Gray" Margin="10,80,390,80" 
+                   VerticalAlignment="Center" 
+                   IsHitTestVisible="False" 
+                   Visibility="Visible"/>
+
+        <TextBox x:Name="keywordsTextBox" Width="200" Margin="10,80,390,80" 
+                  Grid.ColumnSpan="2" TextChanged="keywordsTextBox_TextChanged"/>
+
+        <Button Content="Сгенерировать" Width="200" Margin="83,192,178,0"
+                VerticalAlignment="Top" Click="GenerateStory_Click" Grid.Column="1" />
+
+        <TextBlock x:Name="storyTextBlock" Margin="10,10,20,0" VerticalAlignment="Top" 
+                   TextWrapping="Wrap" Grid.ColumnSpan="2" Height="59" />
+    </Grid>
+</Window>
