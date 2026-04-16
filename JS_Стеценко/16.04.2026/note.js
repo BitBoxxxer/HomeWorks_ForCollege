@@ -1,0 +1,1 @@
+console.log("Файл (note.js) подключен")
