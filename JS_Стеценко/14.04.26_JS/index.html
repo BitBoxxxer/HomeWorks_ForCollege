@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>JS пара [14.04.26]</title>
+        <link scr="script.js">
+        <style>
+            body{
+                font-family: monospace;
+                margin: 20px;
+            }
+        </style>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>Hello</h1>
+        <h2 id="1_quest" type="Number">[Первое задание.]</h2>
+        <h2 id = "2_quest" type="Number">[Второе задание]</h2>
+        <h2 id="3_quest" type="Number"> [Третье задание]</h2>
+        <h2 id="4_quest" type="Number">[Четвертое задание]</h2>
+
+        <div class="column">
+
+            <input type="Number" id="input_5_i">
+            <select id="5_select">
+                <option value="+" id="5_plus">+</option>
+                <option value="-" id="5_minus">-</option>
+                <option value="*" id="5_shit1">*</option>
+                <option value="/" id="5_shit2">/</option>
+            </select>
+
+            <input type="Number" id="input_5_y">
+            <button id="5_butt" onclick="Kalcualtor()">Решить ?</button>
+            <h2 id="5_konez"></h2>
+        </div>
+
+        <h2 id="6_quest" type="Number">[6]</h2>
+        <h2 id="7_quest" type="Number">[7]</h2>
+        <h2 id="8_quest" type="Number">[8]</h2>
+        <h2 id="9_quest" type="Number">[9]</h2>
+        <h2 id="10_quest" type="Number">[10]</h2>
+
+        <script src="script.js"></script>
+    </body>
+    <script>
+
+        let num = Number(prompt("Введите число"))
+        function NumberPrinterXX2(i){
+            if (!isNaN(i)){
+                return i ** 2;
+            }
+            else {return 0;}
+        }
+        document.getElementById("1_quest").textContent = `[1] ${num} ** 2 = ${NumberPrinterXX2(num)}`;
+
+        let num_i_2 = Number(prompt("Введите первое число [2]"))
+        let num_y_2 = Number(prompt("Введите второе число [2]"))
+        function Medium_Arifm(){
+            return (num_i_2 + num_y_2) / 2;
+        }
+        document.getElementById("2_quest").textContent = 
+        `[2] Среднее арифм. чисел: ${num_i_2} и ${num_y_2} = ${Medium_Arifm()}`;
+
+        let squar_3 = Number(prompt("Сторона квадрата ?"));
+        document.getElementById("3_quest").textContent = `[3] Площадь квадрата, с стороной "${squar_3}" = ${NumberPrinterXX2(squar_3)}`;
+
+        let kilo_into_mile = Number(prompt("Введите киллометры"));
+        function func_kilo_into_mile(){
+            return kilo_into_mile * 0.621371;
+        }
+        document.getElementById("4_quest").textContent =
+        `[4] Киллометры ${kilo_into_mile} в милях = ${func_kilo_into_mile()} мили`
+
+        // 5 - rfkrekznjh i dying
+
+        function Kalcualtor() {
+            let i = parseFloat(document.getElementById("input_5_i").value);
+            let y = parseFloat(document.getElementById("input_5_y").value);
+            let what = document.getElementById("5_select").value;
+
+            let result;
+
+            switch (what) {
+                case "+":
+                    result = i + y; break;
+                case "-":
+                    result = i - y; break;
+                case "*":
+                    result = i * y; break;
+                case "/":
+                    if (y !== 0) { result = i / y; } else {
+                        result = "Говно, на ноль не делится";
+                    }
+                    break;
+            }
+
+            document.getElementById("5_konez").textContent = `[5] ${result}`;
+        }
+
+        // 6 я не аааааааааааааААААААААААААААААА
+
+        let a = Number(prompt("(6) Введите число а"))
+        let b = Number(prompt("(6) Введите число b"))
+
+        // a*x + b = 0 /// x = -b/a
+        function zadachka_6(){
+            return -b / a;
+        }
+        document.getElementById("6_quest").textContent =
+        `[6] ${a} * x + ${b} = 0 || x = ${zadachka_6()}`;
+
+
+        let time_i = Number(prompt("(7) Введите часы:"))
+        let time_y = Number(prompt("(7) Введите минуты:"))
+
+        function find_hour(){
+            if (time_y != 0) return 23 - time_i;
+            else return 24 - time_i;
+        }
+        function find_minutes(){
+            if (time_y != 0) return 60 - time_y;
+            else return 0;
+        }
+
+        document.getElementById("7_quest").textContent =
+        `[7] Сейчас время: ${time_i}:${time_y} Осталось до нового дня: ${find_hour()}:${find_minutes()}`;
+    
+        
+        let eig = Number(prompt("(8) Введите трехзначное число"));
+
+        function eight_idk(){
+            return (eig % 100 - eig % 10) / 10;
+        }
+
+        document.getElementById("8_quest").textContent =
+        `[8] ${eig} => ${eight_idk()}`;
+    
+    
+        // 9 BRUHHHH
+        let a_9 = Number(prompt("(9) Введите длинное число"))
+        function nine(){
+            return a_9.toString().split('').reverse().join('');
+        }
+        document.getElementById("9_quest").textContent =
+        `[9] ${a_9} => ${nine()}`;
+
+        // 10
+        let a_10 = Number(prompt("(10)Общая сумма продаж ?"))
+        function ten(){
+            let res = (a_10 / 100) * 10;
+            return 250+ res;
+        }
+        document.getElementById("10_quest").textContent =
+        `[10] 250$ + 10% = ${ten()}`;
+    
+    </script>
+</html>
