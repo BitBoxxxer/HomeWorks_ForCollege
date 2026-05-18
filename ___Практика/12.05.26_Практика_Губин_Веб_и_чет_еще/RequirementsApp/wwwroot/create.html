@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Новое требование</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Новое требование</h1>
+        <form id="createForm">
+            <label>Название: <input type="text" id="title" required></label>
+            <label>Описание: <textarea id="description" required></textarea></label>
+            <label>Приоритет:
+                <select id="priority">
+                    <option>Низкий</option>
+                    <option selected>Средний</option>
+                    <option>Высокий</option>
+                </select>
+            </label>
+            <label>Автор (ID пользователя): <input type="number" id="authorId" value="1" required></label>
+            <fieldset>
+                <legend>Согласующие (ID через запятую)</legend>
+                <input type="text" id="approverIds" placeholder="2,3">
+            </fieldset>
+            <button type="submit">Создать</button>
+            <a href="index.html">Отмена</a>
+        </form>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const priority = document.getElementById('priority').value;
+            const authorId = parseInt(document.getElementById('authorId').value);
+            const approverIds = document.getElementById('approverIds').value
+                .split(',').map(s => parseInt(s.trim())).filter(id => !isNaN(id));
+            try {
+                const resp = await fetch('/api/requirements', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({title, description, priority, authorId, approverIds})
+                });
+                if (resp.ok) window.location.href = 'index.html';
+                else alert('Ошибка при создании');
+            } catch (err) {
+                alert('Сетевая ошибка');
+            }
+        });
+    </script>
+</body>
+</html>

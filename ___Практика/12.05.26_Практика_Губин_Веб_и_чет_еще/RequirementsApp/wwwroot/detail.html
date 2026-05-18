@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Детали требования</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        <a href="index.html">← Назад к списку</a>
+        <div id="detail"></div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (!id) window.location.href = 'index.html';
+
+        async function loadDetail() {
+            const resp = await fetch(`/api/requirements/${id}`);
+            const req = await resp.json();
+            render(req);
+        }
+
+        function render(req) {
+            let html = `<h1>Требование #${req.id}: ${req.title}</h1>`;
+            html += `<p><b>Статус:</b> ${req.status} | <b>Приоритет:</b> ${req.priority}</p>`;
+            html += `<p><b>Автор:</b> ${req.author.fullName}</p>`;
+            html += `<p><b>Описание:</b> ${req.description}</p>`;
+
+            // Текущая версия
+            if (req.currentVersion) {
+                html += `<h2>Текущая утверждённая версия (v${req.currentVersion.versionNumber})</h2>`;
+                html += `<p>${req.currentVersion.title}: ${req.currentVersion.description}</p>`;
+            }
+
+            // Кнопка редактирования
+            html += `<button onclick="editRequirement()">Редактировать</button>`;
+
+            // Версии
+            html += `<h3>Версии</h3><ul>`;
+            req.versions.forEach(v => {
+                html += `<li>
+                    <b>v${v.versionNumber}</b> (${v.status}) – ${v.title}
+                    <button onclick="viewVersion(${v.id})">Просмотр</button>
+                    <button onclick="sendForApproval(${v.id})" ${v.status !== 'Draft' ? 'disabled' : ''}>На согласование</button>
+                    <div id="version-${v.id}" style="display:none;"></div>
+                </li>`;
+            });
+            html += `</ul>`;
+            document.getElementById('detail').innerHTML = html;
+        }
+
+        async function editRequirement() {
+            const newTitle = prompt('Новое название', '');
+            if (newTitle === null) return;
+            const newDesc = prompt('Новое описание', '');
+            const newPriority = prompt('Новый приоритет (Низкий, Средний, Высокий)', '');
+            await fetch(`/api/requirements/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title: newTitle, description: newDesc, priority: newPriority})
+            });
+            loadDetail();
+        }
+
+        async function sendForApproval(versionId) {
+            await fetch(`/api/requirements/version/${versionId}/send-for-approval`, {method: 'POST'});
+            loadDetail();
+        }
+
+        async function viewVersion(versionId) {
+            const div = document.getElementById(`version-${versionId}`);
+            if (div.style.display === 'none') {
+                const resp = await fetch(`/api/requirements/${id}`);
+                const req = await resp.json();
+                const version = req.versions.find(v => v.id === versionId);
+                let inner = `<h4>Версия ${version.versionNumber}</h4>`;
+                inner += `<p>${version.description}</p>`;
+                // Согласования
+                inner += `<h5>Согласования</h5><ul>`;
+                version.approvals.forEach(a => {
+                    inner += `<li>${a.user.fullName}: ${a.isApproved === null ? 'Ожидает' : a.isApproved ? '✅ Утверждено' : '❌ Отклонено'} – ${a.comment || ''}</li>`;
+                });
+                inner += `</ul>`;
+
+                // Комментарии
+                inner += `<h5>Комментарии</h5><ul>`;
+                version.comments.forEach(c => {
+                    inner += `<li><b>${c.user.fullName}</b>: ${c.text} (${new Date(c.createdDate).toLocaleString()})</li>`;
+                });
+                inner += `</ul>`;
+                inner += `<textarea id="comment-text-${versionId}" placeholder="Добавить комментарий"></textarea>
+                          <button onclick="addComment(${versionId})">Отправить</button>`;
+
+                // Файлы
+                inner += `<h5>Файлы</h5><ul>`;
+                version.attachments.forEach(a => {
+                    inner += `<li><a href="/api/files/download/${a.id}">${a.fileName}</a></li>`;
+                });
+                inner += `</ul>
+                          <input type="file" id="file-input-${versionId}">
+                          <button onclick="uploadFile(${versionId})">Загрузить файл</button>`;
+
+                div.innerHTML = inner;
+                div.style.display = 'block';
+            } else {
+                div.style.display = 'none';
+            }
+        }
+
+        async function addComment(versionId) {
+            const text = document.getElementById(`comment-text-${versionId}`).value;
+            const userId = 1; // для простоты – текущий пользователь (Иван)
+            await fetch(`/api/requirements/version/${versionId}/comment`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({userId, text})
+            });
+            viewVersion(versionId); // обновим
+        }
+
+        async function uploadFile(versionId) {
+            const input = document.getElementById(`file-input-${versionId}`);
+            const file = input.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('file', file);
+            await fetch(`/api/files/upload/${versionId}`, {method: 'POST', body: formData});
+            viewVersion(versionId);
+        }
+
+        loadDetail();
+    </script>
+</body>
+</html>

@@ -30,6 +30,16 @@ namespace UI
             _timer.Tick += Timer_Tick;
         }
 
+        /* private void MinimizeWindow(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void CloseWindow(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+ */
         private async void Timer_Tick(object sender, EventArgs e)
         {
             double temp = Math.Round(_rand.NextDouble() * 30 + 10, 1); // 10..40
@@ -39,7 +49,7 @@ namespace UI
                 var response = await _http.PostAsJsonAsync("/api/temperature", data);
                 response.EnsureSuccessStatusCode();
                 LastTempText.Text = $"Последняя: {temp} °C (отправлено)";
-                StatusText.Text = $"✅ {DateTime.Now:HH:mm:ss} - OK";
+                StatusText.Text = $"{DateTime.Now:HH:mm:ss} - OK";
             }
             catch (Exception ex)
             {

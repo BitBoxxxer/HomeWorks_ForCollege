@@ -80,4 +80,7 @@ app.MapGet("/", async context =>
 
 app.Run();
 
-public record TemperatureRecord(double Temperature, DateTime Timestamp);
+public record TemperatureRecord(
+    [property: System.Text.Json.Serialization.JsonPropertyName("temperature")] double Temperature,
+    [property: System.Text.Json.Serialization.JsonPropertyName("timestamp")] DateTime Timestamp
+);
