@@ -31,7 +31,7 @@ public class AppDbContext : DbContext
             .WithMany(v => v.Approvals)
             .HasForeignKey(a => a.VersionId);
 
-        // Начальные данные: 3 пользователя для теста
+        // Начальные данные: 3 пользователя для теста бдшки
         modelBuilder.Entity<User>().HasData(
             new User { Id = 1, FullName = "Иван Петров", Email = "ivan@company.ru" },
             new User { Id = 2, FullName = "Елена Смирнова", Email = "elena@company.ru" },

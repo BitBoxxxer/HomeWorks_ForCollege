@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Детали требования</title>
+    <title>Детали заявки</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,56 +10,143 @@
         <a href="index.html">← Назад к списку</a>
         <div id="detail"></div>
     </div>
-    <script src="script.js"></script>
     <script>
+        const statusLabels = {
+            "Draft": "Черновик", "InApproval": "На согласовании", "Approved": "Утверждена",
+            "Rejected": "Отклонена", "Archived": "Архив",
+            0: "Черновик", 1: "На согласовании", 2: "Утверждена", 3: "Отклонена", 4: "Архив"
+        };
+        const versionStatusLabels = {
+            "Draft": "Черновик", "InApproval": "На согласовании", "Approved": "Утверждена", "Rejected": "Отклонена",
+            0: "Черновик", 1: "На согласовании", 2: "Утверждена", 3: "Отклонена"
+        };
+
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         if (!id) window.location.href = 'index.html';
 
         async function loadDetail() {
             const resp = await fetch(`/api/requirements/${id}`);
+            if (!resp.ok) { alert('Заявка не найдена'); return; }
             const req = await resp.json();
             render(req);
         }
 
         function render(req) {
-            let html = `<h1>Требование #${req.id}: ${req.title}</h1>`;
-            html += `<p><b>Статус:</b> ${req.status} | <b>Приоритет:</b> ${req.priority}</p>`;
-            html += `<p><b>Автор:</b> ${req.author.fullName}</p>`;
-            html += `<p><b>Описание:</b> ${req.description}</p>`;
+            let html = `
+                <h1>📄 Заявка #${req.id}: ${escapeHtml(req.title)}</h1>
+                <p><strong>Статус:</strong> <span class="status-badge ${statusClass(req.status)}">${statusLabels[req.status] || req.status}</span> | 
+                <strong>Приоритет:</strong> ${escapeHtml(req.priority)}</p>
+                <p><strong>Автор:</strong> ${escapeHtml(req.author?.fullName || '—')}</p>
+                <p><strong>Подразделение:</strong> ${escapeHtml(req.department)}</p>
+                <p><strong>Ресурс:</strong> ${escapeHtml(req.resource)}</p>
+                <p><strong>Тип доступа:</strong> ${escapeHtml(req.accessType)}</p>
+                <p><strong>Срок действия:</strong> ${req.expirationDate ? new Date(req.expirationDate).toLocaleDateString() : 'не ограничен'}</p>
+                <p><strong>Обоснование:</strong> ${escapeHtml(req.description)}</p>
+                <button onclick="editRequirement()" class="secondary">✏️ Редактировать</button>
+            `;
 
-            // Текущая версия
             if (req.currentVersion) {
-                html += `<h2>Текущая утверждённая версия (v${req.currentVersion.versionNumber})</h2>`;
-                html += `<p>${req.currentVersion.title}: ${req.currentVersion.description}</p>`;
+                html += `<h2>✅ Текущая утверждённая версия (v${req.currentVersion.versionNumber})</h2>
+                         <p>${escapeHtml(req.currentVersion.title)}: ${escapeHtml(req.currentVersion.description)}</p>`;
             }
 
-            // Кнопка редактирования
-            html += `<button onclick="editRequirement()">Редактировать</button>`;
-
-            // Версии
-            html += `<h3>Версии</h3><ul>`;
-            req.versions.forEach(v => {
-                html += `<li>
-                    <b>v${v.versionNumber}</b> (${v.status}) – ${v.title}
-                    <button onclick="viewVersion(${v.id})">Просмотр</button>
-                    <button onclick="sendForApproval(${v.id})" ${v.status !== 'Draft' ? 'disabled' : ''}>На согласование</button>
-                    <div id="version-${v.id}" style="display:none;"></div>
-                </li>`;
+            html += `<h3>📚 История версий</h3><div id="versions-container">`;
+            req.versions.sort((a,b) => b.versionNumber - a.versionNumber).forEach(v => {
+                const isDraft = v.status === 'Draft' || v.status === 0;
+                html += `
+                    <div class="version-block" id="version-${v.id}">
+                        <div class="version-header" onclick="toggleVersion(${v.id})">
+                            <span><strong>v${v.versionNumber}</strong> – ${versionStatusLabels[v.status] || v.status}</span>
+                            <span>${isDraft ? '<button onclick="event.stopPropagation(); sendForApproval(' + v.id + ')" class="btn" style="padding:0.3rem 0.8rem;">▶ На согласование</button>' : ''}</span>
+                        </div>
+                        <div class="version-body" id="version-body-${v.id}"></div>
+                    </div>`;
             });
-            html += `</ul>`;
+            html += `</div>`;
             document.getElementById('detail').innerHTML = html;
+        }
+
+        function statusClass(status) {
+            const map = {
+                Draft: 'status-draft', InApproval: 'status-inapproval',
+                Approved: 'status-approved', Rejected: 'status-rejected', Archived: 'status-archived',
+                0: 'status-draft', 1: 'status-inapproval', 2: 'status-approved', 3: 'status-rejected', 4: 'status-archived'
+            };
+            return map[status] || '';
+        }
+
+        async function toggleVersion(versionId) {
+            const body = document.getElementById(`version-body-${versionId}`);
+            if (body.classList.contains('open')) {
+                body.classList.remove('open');
+                return;
+            }
+            const resp = await fetch(`/api/requirements/${id}`);
+            const req = await resp.json();
+            const version = req.versions.find(v => v.id === versionId);
+            if (!version) return;
+
+            let inner = `<p><strong>${escapeHtml(version.title)}</strong>: ${escapeHtml(version.description)}</p>`;
+
+            inner += `<h4>👥 Согласования</h4>`;
+            if (!version.approvals || version.approvals.length === 0) {
+                inner += `<p>Согласующие не назначены.</p>`;
+            } else {
+                inner += `<ul>`;
+                version.approvals.forEach(a => {
+                    const decision = a.isApproved === null ? '⏳ Ожидает' : (a.isApproved ? '✅ Утверждено' : '❌ Отклонено');
+                    inner += `<li>
+                        <strong>${escapeHtml(a.user.fullName)}</strong>: ${decision} – ${escapeHtml(a.comment || '')}`;
+                    // Показываем кнопки, только если версия на согласовании И решение ещё не принято
+                    if ((version.status === 'InApproval' || version.status === 1) && a.isApproved === null) {
+                        inner += ` 
+                            <button onclick="approve(${versionId}, ${a.userId}, true)" style="margin-left:1rem; padding:0.2rem 0.5rem;">✅ Утвердить</button>
+                            <button onclick="approve(${versionId}, ${a.userId}, false)" style="padding:0.2rem 0.5rem;">❌ Отклонить</button>`;
+                    }
+                    inner += `</li>`;
+                });
+                inner += `</ul>`;
+            }
+
+            inner += `<h4>💬 Комментарии</h4>`;
+            version.comments.forEach(c => {
+                inner += `<div class="comment-item"><strong>${escapeHtml(c.user.fullName)}</strong> (${new Date(c.createdDate).toLocaleString()}):<br>${escapeHtml(c.text)}</div>`;
+            });
+            inner += `<textarea id="comment-text-${versionId}" placeholder="Добавить комментарий..." style="width:100%; margin-top:0.5rem;"></textarea>
+                      <button onclick="addComment(${versionId})">Отправить</button>`;
+
+            inner += `<h4>📎 Файлы</h4><ul>`;
+            version.attachments.forEach(a => {
+                inner += `<li><a href="/api/files/download/${a.id}">${escapeHtml(a.fileName)}</a></li>`;
+            });
+            inner += `</ul>
+                      <div class="file-upload">
+                          <input type="file" id="file-input-${versionId}">
+                          <button onclick="uploadFile(${versionId})">Загрузить</button>
+                      </div>`;
+
+            body.innerHTML = inner;
+            body.classList.add('open');
         }
 
         async function editRequirement() {
             const newTitle = prompt('Новое название', '');
             if (newTitle === null) return;
             const newDesc = prompt('Новое описание', '');
-            const newPriority = prompt('Новый приоритет (Низкий, Средний, Высокий)', '');
+            const newPriority = prompt('Приоритет (Низкий, Средний, Высокий)', '');
+            const newDept = prompt('Подразделение', '');
+            const newRes = prompt('Ресурс', '');
+            const newAccess = prompt('Тип доступа (Чтение, Запись, Администрирование)', '');
+            const newExp = prompt('Срок действия (yyyy-mm-dd или пусто)', '');
             await fetch(`/api/requirements/${id}`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({title: newTitle, description: newDesc, priority: newPriority})
+                body: JSON.stringify({
+                    title: newTitle, description: newDesc, priority: newPriority,
+                    department: newDept, resource: newRes, accessType: newAccess,
+                    expirationDate: newExp || null
+                })
             });
             loadDetail();
         }
@@ -69,55 +156,29 @@
             loadDetail();
         }
 
-        async function viewVersion(versionId) {
-            const div = document.getElementById(`version-${versionId}`);
-            if (div.style.display === 'none') {
-                const resp = await fetch(`/api/requirements/${id}`);
-                const req = await resp.json();
-                const version = req.versions.find(v => v.id === versionId);
-                let inner = `<h4>Версия ${version.versionNumber}</h4>`;
-                inner += `<p>${version.description}</p>`;
-                // Согласования
-                inner += `<h5>Согласования</h5><ul>`;
-                version.approvals.forEach(a => {
-                    inner += `<li>${a.user.fullName}: ${a.isApproved === null ? 'Ожидает' : a.isApproved ? '✅ Утверждено' : '❌ Отклонено'} – ${a.comment || ''}</li>`;
-                });
-                inner += `</ul>`;
-
-                // Комментарии
-                inner += `<h5>Комментарии</h5><ul>`;
-                version.comments.forEach(c => {
-                    inner += `<li><b>${c.user.fullName}</b>: ${c.text} (${new Date(c.createdDate).toLocaleString()})</li>`;
-                });
-                inner += `</ul>`;
-                inner += `<textarea id="comment-text-${versionId}" placeholder="Добавить комментарий"></textarea>
-                          <button onclick="addComment(${versionId})">Отправить</button>`;
-
-                // Файлы
-                inner += `<h5>Файлы</h5><ul>`;
-                version.attachments.forEach(a => {
-                    inner += `<li><a href="/api/files/download/${a.id}">${a.fileName}</a></li>`;
-                });
-                inner += `</ul>
-                          <input type="file" id="file-input-${versionId}">
-                          <button onclick="uploadFile(${versionId})">Загрузить файл</button>`;
-
-                div.innerHTML = inner;
-                div.style.display = 'block';
-            } else {
-                div.style.display = 'none';
-            }
+        async function approve(versionId, userId, isApproved) {
+            const comment = prompt('Комментарий (необязательно)', '');
+            await fetch(`/api/requirements/version/${versionId}/approve`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({userId, isApproved, comment})
+            });
+            const body = document.getElementById(`version-body-${versionId}`);
+            body.classList.remove('open'); // открыть и закрыть - чтобы перерисовать. Я бы придумала лучше, но было и так времени мало
+            await toggleVersion(versionId);
         }
 
         async function addComment(versionId) {
             const text = document.getElementById(`comment-text-${versionId}`).value;
-            const userId = 1; // для простоты – текущий пользователь (Иван)
+            const userId = 1;
             await fetch(`/api/requirements/version/${versionId}/comment`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({userId, text})
             });
-            viewVersion(versionId); // обновим
+            const body = document.getElementById(`version-body-${versionId}`);
+            body.classList.remove('open');
+            await toggleVersion(versionId);
         }
 
         async function uploadFile(versionId) {
@@ -127,10 +188,16 @@
             const formData = new FormData();
             formData.append('file', file);
             await fetch(`/api/files/upload/${versionId}`, {method: 'POST', body: formData});
-            viewVersion(versionId);
+            const body = document.getElementById(`version-body-${versionId}`);
+            body.classList.remove('open');
+            await toggleVersion(versionId);
         }
 
-        loadDetail();
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]);
+        }
+
+        window.addEventListener('DOMContentLoaded', loadDetail);
     </script>
 </body>
 </html>

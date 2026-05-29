@@ -2,15 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Новое требование</title>
+    <title>Новая заявка</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Новое требование</h1>
+        <h1>✍️ Новая заявка на доступ</h1>
         <form id="createForm">
             <label>Название: <input type="text" id="title" required></label>
-            <label>Описание: <textarea id="description" required></textarea></label>
+            <label>Обоснование: <textarea id="description" required></textarea></label>
             <label>Приоритет:
                 <select id="priority">
                     <option>Низкий</option>
@@ -18,35 +18,68 @@
                     <option>Высокий</option>
                 </select>
             </label>
-            <label>Автор (ID пользователя): <input type="number" id="authorId" value="1" required></label>
+            <label>Подразделение: <input type="text" id="department" required></label>
+            <label>Ресурс: <input type="text" id="resource" required></label>
+            <label>Тип доступа:
+                <select id="accessType">
+                    <option>Чтение</option>
+                    <option>Запись</option>
+                    <option>Администрирование</option>
+                </select>
+            </label>
+            <label>Срок действия: <input type="date" id="expirationDate"></label>
+            <label>Автор:
+                <select id="authorId" required style="max-width: none; width: 100%;"></select>
+            </label>
             <fieldset>
-                <legend>Согласующие (ID через запятую)</legend>
-                <input type="text" id="approverIds" placeholder="2,3">
+                <legend>Согласующие</legend>
+                <select id="approverSelect" multiple style="max-width: none; width: 100%; min-height: 120px;"></select>
+                <small>Удерживайте Ctrl (Cmd) для выбора нескольких</small>
             </fieldset>
-            <button type="submit">Создать</button>
-            <a href="index.html">Отмена</a>
+            <button type="submit">✅ Создать заявку</button>
+            <a href="index.html" class="btn secondary">Отмена</a>
         </form>
     </div>
-    <script src="script.js"></script>
     <script>
+        async function loadUsers() {
+            const resp = await fetch('/api/users');
+            const users = await resp.json();
+            const authorSelect = document.getElementById('authorId');
+            const approverSelect = document.getElementById('approverSelect');
+            authorSelect.innerHTML = '';
+            approverSelect.innerHTML = '';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `${u.fullName} (${u.email})`;
+                authorSelect.appendChild(opt.cloneNode(true));
+                approverSelect.appendChild(opt);
+            });
+            if (users.length) authorSelect.value = users[0].id;
+        }
+        loadUsers();
+
         document.getElementById('createForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const priority = document.getElementById('priority').value;
+            const department = document.getElementById('department').value;
+            const resource = document.getElementById('resource').value;
+            const accessType = document.getElementById('accessType').value;
+            const expirationDate = document.getElementById('expirationDate').value || null;
             const authorId = parseInt(document.getElementById('authorId').value);
-            const approverIds = document.getElementById('approverIds').value
-                .split(',').map(s => parseInt(s.trim())).filter(id => !isNaN(id));
+            const approverIds = Array.from(document.getElementById('approverSelect').selectedOptions).map(o => parseInt(o.value));
             try {
                 const resp = await fetch('/api/requirements', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({title, description, priority, authorId, approverIds})
+                    body: JSON.stringify({title, description, priority, department, resource, accessType, expirationDate, authorId, approverIds})
                 });
                 if (resp.ok) window.location.href = 'index.html';
-                else alert('Ошибка при создании');
+                else alert('Ошибка при создании заявки');
             } catch (err) {
-                alert('Сетевая ошибка');
+                alert('Сетевая ошибка: ' + err.message);
             }
         });
     </script>

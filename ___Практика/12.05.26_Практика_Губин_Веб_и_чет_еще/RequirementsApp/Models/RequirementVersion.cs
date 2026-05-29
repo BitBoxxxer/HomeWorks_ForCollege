@@ -18,4 +18,9 @@ public class RequirementVersion
     public List<Approval> Approvals { get; set; } = new();
     public List<Attachment> Attachments { get; set; } = new();
     public List<Comment> Comments { get; set; } = new();
+
+    public string Department { get; set; } = string.Empty;
+    public string Resource { get; set; } = string.Empty;
+    public string AccessType { get; set; } = string.Empty;
+    public DateTime? ExpirationDate { get; set; }
 }

@@ -5,6 +5,10 @@ public class CreateRequirementDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Priority { get; set; } = "Средний";
+    public string Department { get; set; } = string.Empty;
+    public string Resource { get; set; } = string.Empty;
+    public string AccessType { get; set; } = string.Empty;
+    public DateTime? ExpirationDate { get; set; }
     public int AuthorId { get; set; }
     public List<int> ApproverIds { get; set; } = new();
 }

@@ -4,6 +4,7 @@ using RequirementsApp.Data;
 using RequirementsApp.DTOs;
 using RequirementsApp.Models;
 using RequirementsApp.Services;
+using System.Text;
 
 namespace RequirementsApp.Controllers;
 
@@ -21,7 +22,7 @@ public class RequirementsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? status, [FromQuery] string? priority)
+    public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? status, [FromQuery] string? priority, [FromQuery] int? authorId)
     {
         var query = _db.Requirements
             .Include(r => r.Author)
@@ -34,6 +35,8 @@ public class RequirementsController : ControllerBase
             query = query.Where(r => r.Status == st);
         if (!string.IsNullOrEmpty(priority))
             query = query.Where(r => r.Priority == priority);
+        if (authorId.HasValue)
+            query = query.Where(r => r.AuthorId == authorId.Value);
 
         return Ok(await query.ToListAsync());
     }
@@ -56,7 +59,10 @@ public class RequirementsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateRequirementDto dto)
     {
-        var req = await _service.CreateAsync(dto.Title, dto.Description, dto.Priority, dto.AuthorId, dto.ApproverIds);
+        var req = await _service.CreateAsync(
+            dto.Title, dto.Description, dto.Priority,
+            dto.Department, dto.Resource, dto.AccessType, dto.ExpirationDate,
+            dto.AuthorId, dto.ApproverIds);
         return CreatedAtAction(nameof(Get), new { id = req.Id }, req);
     }
 
@@ -65,7 +71,9 @@ public class RequirementsController : ControllerBase
     {
         try
         {
-            var version = await _service.EditRequirementAsync(id, dto.Title, dto.Description, dto.Priority);
+            var version = await _service.EditRequirementAsync(id,
+                dto.Title, dto.Description, dto.Priority,
+                dto.Department, dto.Resource, dto.AccessType, dto.ExpirationDate);
             return Ok(version);
         }
         catch (InvalidOperationException ex)
@@ -101,4 +109,23 @@ public class RequirementsController : ControllerBase
         await _service.AddCommentAsync(versionId, dto.UserId, dto.Text);
         return Ok();
     }
+
+    [HttpGet("report")]
+    public async Task<IActionResult> Report()
+    {
+        var reqs = await _db.Requirements
+            .Include(r => r.Author)
+            .Include(r => r.CurrentVersion)
+            .ToListAsync();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("ID,Название,Автор,Подразделение,Ресурс,Тип доступа,Приоритет,Статус,Срок действия,Дата создания");
+        foreach (var r in reqs)
+        {
+            sb.AppendLine($"{r.Id},{EscapeCsv(r.Title)},{EscapeCsv(r.Author?.FullName)},{EscapeCsv(r.Department)},{EscapeCsv(r.Resource)},{EscapeCsv(r.AccessType)},{r.Priority},{r.Status},{r.ExpirationDate?.ToString("yyyy-MM-dd")},{r.CreatedDate:yyyy-MM-dd}");
+        }
+        return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", "requirements_report.csv");
+    }
+
+    private static string EscapeCsv(string? s) => $"\"{(s ?? "").Replace("\"", "\"\"")}\"";
 }

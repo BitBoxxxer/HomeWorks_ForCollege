@@ -20,6 +20,11 @@ public class Requirement
 
     public List<RequirementVersion> Versions { get; set; } = new();
     public List<RequirementApprover> Approvers { get; set; } = new();
+
+    public string Department { get; set; } = string.Empty;   // подразделение
+    public string Resource { get; set; } = string.Empty;     // ресурс
+    public string AccessType { get; set; } = string.Empty;   // тип доступа
+    public DateTime? ExpirationDate { get; set; }  //срок
 }
 
 public class RequirementApprover

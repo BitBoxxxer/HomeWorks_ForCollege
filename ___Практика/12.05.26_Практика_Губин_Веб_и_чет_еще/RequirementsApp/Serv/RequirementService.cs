@@ -9,74 +9,116 @@ public class RequirementService
     private readonly AppDbContext _db;
     public RequirementService(AppDbContext db) => _db = db;
 
-    public async Task<Requirement> CreateAsync(string title, string description, string priority, int authorId, List<int> approverIds)
+    public async Task<Requirement> CreateAsync(string title, string description, string priority,
+        string department, string resource, string accessType, DateTime? expirationDate,
+        int authorId, List<int> approverIds)
     {
         var requirement = new Requirement
         {
             Title = title,
             Description = description,
             Priority = priority,
+            Department = department,
+            Resource = resource,
+            AccessType = accessType,
+            ExpirationDate = expirationDate,
             AuthorId = authorId,
             CreatedDate = DateTime.UtcNow,
             Status = RequirementStatus.Draft
         };
-
-        var version = new RequirementVersion
-        {
-            Title = title,
-            Description = description,
-            Priority = priority,
-            VersionNumber = 1,
-            Status = VersionStatus.Draft,
-            CreatedDate = DateTime.UtcNow,
-            Requirement = requirement
-        };
-        requirement.Versions.Add(version);
-        requirement.CurrentVersion = version;
 
         foreach (var userId in approverIds)
             requirement.Approvers.Add(new RequirementApprover { UserId = userId });
 
         _db.Requirements.Add(requirement);
         await _db.SaveChangesAsync();
-        return requirement;
+
+        // Первая версия тоже должна хранить эти поля (чтобы история была полной)
+        var version = new RequirementVersion
+        {
+            RequirementId = requirement.Id,
+            Title = title,
+            Description = description,
+            Priority = priority,
+            Department = department,
+            Resource = resource,
+            AccessType = accessType,
+            ExpirationDate = expirationDate,
+            VersionNumber = 1,
+            Status = VersionStatus.Draft,
+            CreatedDate = DateTime.UtcNow
+        };
+        _db.RequirementVersions.Add(version);
+        await _db.SaveChangesAsync();
+
+        requirement.CurrentVersionId = version.Id;
+        await _db.SaveChangesAsync();
+
+        return await _db.Requirements
+            .Include(r => r.Author)
+            .Include(r => r.CurrentVersion)
+            .Include(r => r.Versions)
+            .Include(r => r.Approvers).ThenInclude(a => a.User)
+            .FirstAsync(r => r.Id == requirement.Id);
     }
 
-    public async Task<RequirementVersion> EditRequirementAsync(int requirementId, string? newTitle, string? newDescription, string? newPriority)
+    public async Task<RequirementVersion> EditRequirementAsync(int requirementId,
+        string? newTitle, string? newDescription, string? newPriority,
+        string? newDepartment, string? newResource, string? newAccessType, DateTime? newExpirationDate)
     {
         var req = await _db.Requirements
             .Include(r => r.Versions)
             .FirstOrDefaultAsync(r => r.Id == requirementId)
             ?? throw new InvalidOperationException("Требование не найдено");
 
+        if (newTitle != null) req.Title = newTitle;
+        if (newDescription != null) req.Description = newDescription;
+        if (newPriority != null) req.Priority = newPriority;
+        if (newDepartment != null) req.Department = newDepartment;
+        if (newResource != null) req.Resource = newResource;
+        if (newAccessType != null) req.AccessType = newAccessType;
+        req.ExpirationDate = newExpirationDate; // может быть null, это допустимо
+
         if (req.Status == RequirementStatus.Approved || req.Status == RequirementStatus.Archived)
         {
+            // Создаём новую версию, копируя текущие данные требования
             var lastVersion = req.Versions.OrderByDescending(v => v.VersionNumber).First();
             var newVersion = new RequirementVersion
             {
                 RequirementId = req.Id,
-                Title = newTitle ?? lastVersion.Title,
-                Description = newDescription ?? lastVersion.Description,
-                Priority = newPriority ?? lastVersion.Priority,
+                Title = req.Title,
+                Description = req.Description,
+                Priority = req.Priority,
+                Department = req.Department,
+                Resource = req.Resource,
+                AccessType = req.AccessType,
+                ExpirationDate = req.ExpirationDate,
                 VersionNumber = lastVersion.VersionNumber + 1,
                 Status = VersionStatus.Draft,
                 CreatedDate = DateTime.UtcNow
             };
             req.Versions.Add(newVersion);
             req.Status = RequirementStatus.Draft;
+            req.CurrentVersion = null;
+            req.CurrentVersionId = null;
             await _db.SaveChangesAsync();
             return newVersion;
         }
         else
         {
+            // последний черновик
             var currentDraft = req.Versions
                 .Where(v => v.Status == VersionStatus.Draft)
                 .OrderByDescending(v => v.VersionNumber)
                 .First();
 
-            if (newTitle != null) currentDraft.Title = newTitle;
-            if (newDescription != null) currentDraft.Description = newDescription;
-            if (newPriority != null) currentDraft.Priority = newPriority;
+            currentDraft.Title = req.Title;
+            currentDraft.Description = req.Description;
+            currentDraft.Priority = req.Priority;
+            currentDraft.Department = req.Department;
+            currentDraft.Resource = req.Resource;
+            currentDraft.AccessType = req.AccessType;
+            currentDraft.ExpirationDate = req.ExpirationDate;
             await _db.SaveChangesAsync();
             return currentDraft;
         }

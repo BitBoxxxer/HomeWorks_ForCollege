@@ -3,23 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Требования – Система управления</title>
+    <title>Заявки на доступ – Система управления</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Система управления требованиями</h1>
+        <h1>📋 Управление заявками на доступ</h1>
         <div class="toolbar">
-            <input type="text" id="search" placeholder="Поиск...">
+            <input type="text" id="search" placeholder="Поиск по названию/описанию...">
             <select id="statusFilter">
                 <option value="">Все статусы</option>
                 <option value="Draft">Черновик</option>
                 <option value="InApproval">На согласовании</option>
-                <option value="Approved">Утверждено</option>
-                <option value="Rejected">Отклонено</option>
+                <option value="Approved">Утверждена</option>
+                <option value="Rejected">Отклонена</option>
             </select>
-            <button onclick="loadRequirements()">Найти</button>
-            <button onclick="location.href='create.html'">+ Новое требование</button>
+            <select id="authorFilter">
+                <option value="">Все авторы</option>
+            </select>
+            <button onclick="loadRequirements()">🔍 Найти</button>
+            <a href="create.html" class="btn">＋ Новая заявка</a>
+            <a href="/api/requirements/report" class="btn secondary">📥 Скачать отчёт (CSV)</a>
         </div>
         <table id="requirementsTable">
             <thead>
@@ -34,6 +38,48 @@
             <tbody></tbody>
         </table>
     </div>
-    <script src="script.js"></script>
+    <script>
+        const statusLabels = { "Draft": "Черновик", "InApproval": "На согласовании", "Approved": "Утверждена", "Rejected": "Отклонена", "Archived": "Архив", 0: "Черновик", 1: "На согласовании", 2: "Утверждена", 3: "Отклонена", 4: "Архив" };
+        const statusClasses = { "Draft": "status-draft", "InApproval": "status-inapproval", "Approved": "status-approved", "Rejected": "status-rejected", "Archived": "status-archived", 0: "status-draft", 1: "status-inapproval", 2: "status-approved", 3: "status-rejected", 4: "status-archived" };
+
+        async function loadAuthors() {
+            const resp = await fetch('/api/users');
+            const users = await resp.json();
+            const authorFilter = document.getElementById('authorFilter');
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = u.fullName;
+                authorFilter.appendChild(opt);
+            });
+        }
+        loadAuthors();
+
+        async function loadRequirements() {
+            const search = document.getElementById('search').value;
+            const status = document.getElementById('statusFilter').value;
+            const authorId = document.getElementById('authorFilter').value;
+            let url = `/api/requirements?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`;
+            if (authorId) url += `&authorId=${encodeURIComponent(authorId)}`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+            const tbody = document.querySelector('#requirementsTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                const row = tbody.insertRow();
+                const authorName = r.author?.fullName || '—';
+                const authorEmail = r.author?.email || '';
+                row.innerHTML = `
+                    <td><a href="detail.html?id=${r.id}">#${r.id}</a></td>
+                    <td>${escapeHtml(r.title)}</td>
+                    <td>${escapeHtml(r.priority)}</td>
+                    <td><span class="status-badge ${statusClasses[r.status] || ''}">${statusLabels[r.status] || r.status}</span></td>
+                    <td title="${escapeHtml(authorName + (authorEmail ? ' <' + authorEmail + '>' : ''))}">${escapeHtml(authorName)}</td>
+                `;
+            });
+        }
+        function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]); }
+        window.addEventListener('DOMContentLoaded', loadRequirements);
+    </script>
 </body>
 </html>
