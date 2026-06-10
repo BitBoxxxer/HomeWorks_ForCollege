@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using RequirementsApp.Data;
 using RequirementsApp.Models;
@@ -11,6 +12,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<RequirementService>();
 builder.Services.AddScoped<FileService>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login.html";
+        options.LogoutPath = "/api/auth/logout";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -34,15 +44,6 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
-    if (!db.Users.Any())
-    {
-        db.Users.AddRange(
-            new User { FullName = "Иван Петров", Email = "ivan@company.ru" },
-            new User { FullName = "Елена Смирнова", Email = "elena@company.ru" },
-            new User { FullName = "Алексей Иванов", Email = "alex@company.ru" }
-        );
-        db.SaveChanges();
-    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -51,8 +52,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
-app.UseCors();
+app.UseCors();                       // CORS лучше до аутентификации
+
+app.UseAuthentication();             // включаем куки-аутентификацию
+app.UseAuthorization();              // включаем авторизацию
+
+// Защита статических файлов: если пользователь не залогинен,
+// а запрос идёт НЕ на страницу логина и НЕ на API аутентификации — редирект
+app.Use(async (context, next) =>
+{
+    if (!context.User.Identity.IsAuthenticated &&
+        !context.Request.Path.StartsWithSegments("/login.html") &&
+        !context.Request.Path.StartsWithSegments("/api/auth"))
+    {
+        context.Response.Redirect("/login.html");
+        return;
+    }
+    await next();
+});
+
+app.UseStaticFiles();                // теперь статика доступна только после проверки
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 

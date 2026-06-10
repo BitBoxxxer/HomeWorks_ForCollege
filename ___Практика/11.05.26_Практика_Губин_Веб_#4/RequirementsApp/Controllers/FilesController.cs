@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using RequirementsApp.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RequirementsApp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class FilesController : ControllerBase
 {
     private readonly FileService _fileService;

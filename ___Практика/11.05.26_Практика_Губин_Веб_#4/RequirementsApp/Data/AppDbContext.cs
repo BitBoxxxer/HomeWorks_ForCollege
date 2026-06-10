@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<RequirementApprover> RequirementApprovers => Set<RequirementApprover>();
+    public DbSet<LoginAudit> LoginAudits => Set<LoginAudit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,9 +34,12 @@ public class AppDbContext : DbContext
 
         // Начальные данные: 3 пользователя для теста бдшки
         modelBuilder.Entity<User>().HasData(
-            new User { Id = 1, FullName = "Иван Петров", Email = "ivan@company.ru" },
-            new User { Id = 2, FullName = "Елена Смирнова", Email = "elena@company.ru" },
-            new User { Id = 3, FullName = "Алексей Иванов", Email = "alex@company.ru" }
+            new User { Id = 1, FullName = "Иван Петров", Email = "ivan@company.ru",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123") },
+            new User { Id = 2, FullName = "Елена Смирнова", Email = "elena@company.ru",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123") },
+            new User { Id = 3, FullName = "Алексей Иванов", Email = "alex@company.ru",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123") }
         );
     }
 }

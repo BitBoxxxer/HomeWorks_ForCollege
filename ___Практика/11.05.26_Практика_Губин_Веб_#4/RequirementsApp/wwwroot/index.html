@@ -9,6 +9,7 @@
 <body>
     <div class="container">
         <h1>📋 Управление заявками на доступ</h1>
+        <div id="userInfo" style="text-align: right; margin-bottom: 1rem;"></div>
         <div class="toolbar">
             <input type="text" id="search" placeholder="Поиск по названию/описанию...">
             <select id="statusFilter">
@@ -55,6 +56,19 @@
         }
         loadAuthors();
 
+        async function loadUserInfo() {
+            const resp = await fetch('/api/auth/current');
+            if (resp.ok) {
+                const user = await resp.json();
+                document.getElementById('userInfo').innerHTML = 
+                    `<strong>${user.fullName}</strong> <a href="#" onclick="logout()">Выйти</a>`;
+            }
+        }
+        async function logout() {
+            await fetch('/api/auth/logout', {method:'POST'});
+            window.location.href = '/login.html';
+        }
+
         async function loadRequirements() {
             const search = document.getElementById('search').value;
             const status = document.getElementById('statusFilter').value;
@@ -79,7 +93,10 @@
             });
         }
         function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]); }
-        window.addEventListener('DOMContentLoaded', loadRequirements);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadRequirements();
+        });
     </script>
 </body>
 </html>

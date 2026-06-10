@@ -5,11 +5,13 @@ using RequirementsApp.DTOs;
 using RequirementsApp.Models;
 using RequirementsApp.Services;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RequirementsApp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RequirementsController : ControllerBase
 {
     private readonly AppDbContext _db;
