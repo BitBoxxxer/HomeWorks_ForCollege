@@ -1,0 +1,16 @@
+meta {
+  name: GET товар 11 после PUT
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:3000/products/11
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

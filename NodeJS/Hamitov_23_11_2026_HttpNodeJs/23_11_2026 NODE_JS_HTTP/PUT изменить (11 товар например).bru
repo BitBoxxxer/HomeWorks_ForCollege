@@ -1,0 +1,20 @@
+meta {
+  name: PUT изменить (11 товар например)
+  type: http
+  seq: 9
+}
+
+put {
+  url: http://localhost:3000/products/11
+  body: json
+  auth: inherit
+}
+
+body:json {
+  { "price": 99.99, "quantity": 10 }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

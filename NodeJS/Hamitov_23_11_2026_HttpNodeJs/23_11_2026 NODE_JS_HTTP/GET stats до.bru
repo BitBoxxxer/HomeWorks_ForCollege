@@ -1,0 +1,16 @@
+meta {
+  name: GET stats до
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:3000/stats
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

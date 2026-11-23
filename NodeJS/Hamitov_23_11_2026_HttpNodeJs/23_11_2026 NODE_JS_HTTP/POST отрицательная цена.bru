@@ -1,0 +1,20 @@
+meta {
+  name: POST отрицательная цена
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:3000/products
+  body: json
+  auth: inherit
+}
+
+body:json {
+  { "name": "Тест", "price": -5, "category": "Toys", "quantity": 5 }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
