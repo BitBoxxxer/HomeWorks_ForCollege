@@ -1,0 +1,12 @@
+{
+  "name": "hamitov_23_11_2026_httpserver",
+  "version": "1.0.0",
+  "main": "serv.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
